@@ -2,6 +2,8 @@
 
 This is a bug report for the grpc-gateway project.
 
+Relevant issue: https://github.com/grpc-ecosystem/grpc-gateway/issues/5236
+
 To reproduce it yourself, run:
 
 ```bash
