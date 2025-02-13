@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package example;
+
+option go_package = "github.com/paskozdilar/buf-report-grpc-gateway/example";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+service ExampleService {
+  rpc ServerStreamOK (google.protobuf.Empty) returns (stream ExampleResponse) {
+    option (google.api.http) = {
+      post: "/example/v1/ServerStreamOK";
+      body: "*";
+    };
+  }
+
+  rpc ServerStreamBroken (google.protobuf.Empty) returns (stream ExampleResponse) {
+    option (google.api.http) = {
+      post: "/example/v1/ServerStreamBroken";
+    };
+  }
+}
+
+message ExampleResponse {
+  string id = 1;
+  string name = 2;
+}
