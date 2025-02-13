@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package sts.v1;
+
+option go_package = "grpc-gateway-issue-6495/gen/sts/v1;stsv1";
+
+import "google/api/annotations.proto";
+
+message ExchangeRequest {
+  string grant_type = 1;
+  string audience = 2;
+  string subject_token = 3;
+}
+
+message ExchangeResponse {
+  string access_token = 1;
+}
+
+service STSService {
+  rpc Exchange(ExchangeRequest) returns (ExchangeResponse) {
+    option (google.api.http) = {
+      post: "/sts/exchange"
+    };
+  }
+}
