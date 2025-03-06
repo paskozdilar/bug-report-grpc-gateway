@@ -61,6 +61,7 @@ func request_ExampleService_ServerStreamBroken_0(ctx context.Context, marshaler 
 		protoReq emptypb.Empty
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	stream, err := client.ServerStreamBroken(ctx, &protoReq)
 	if err != nil {
 		return nil, metadata, err

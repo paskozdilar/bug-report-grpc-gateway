@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/paskozdilar/bug-report-grpc-gateway/example"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -63,16 +64,23 @@ func gateway() {
 	); err != nil {
 		log.Fatalf("failed to register gateway: %v", err)
 	}
-	if err := http.ListenAndServe(":8081", mux); err != nil {
+	ws := NewWrapper(mux)
+	if err := http.ListenAndServe(":8081", ws); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
 
 func client() {
+	httpclient()
+	wsclient()
+}
+
+func httpclient() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	time.Sleep(time.Second)
+	log.Println("httpclient")
 
 	req, err := http.NewRequestWithContext(
 		ctx,
@@ -82,6 +90,7 @@ func client() {
 	)
 	if err != nil {
 		log.Println("New request ServerStreamOK:", err)
+		return
 	}
 	go (&http.Client{}).Do(req)
 
@@ -93,10 +102,40 @@ func client() {
 	)
 	if err != nil {
 		log.Println("Request ServerStreamBroken:", err)
+		return
 	}
 	go (&http.Client{}).Do(req)
 
 	time.Sleep(time.Second)
+	log.Println("httpclient end")
+}
+
+func wsclient() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	time.Sleep(time.Second)
+	log.Println("wsclient")
+
+	dialer := websocket.Dialer{}
+	conn, _, err := dialer.DialContext(ctx, "ws://localhost:8081/example/v1/ServerStreamOK", nil)
+	if err != nil {
+		log.Println("WS dial ServerStreamOK:", err)
+		return
+	}
+	conn.WriteMessage(websocket.TextMessage, []byte("{}"))
+	defer conn.Close()
+
+	conn, _, err = dialer.DialContext(ctx, "ws://localhost:8081/example/v1/ServerStreamBroken", nil)
+	if err != nil {
+		log.Println("WS dial ServerStreamBroken:", err)
+		return
+	}
+	conn.WriteMessage(websocket.TextMessage, []byte("{}"))
+	defer conn.Close()
+
+	time.Sleep(time.Second)
+	log.Println("wsclient end")
 }
 
 func main() {
