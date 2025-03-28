@@ -18,7 +18,6 @@ Output:
 ```
 ServerStreamOK open
 ServerStreamBroken open
-ServerStreamOK close
 ```
 
 ## Cause

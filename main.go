@@ -78,7 +78,7 @@ func client() {
 		ctx,
 		http.MethodPost,
 		"http://localhost:8081/example/v1/ServerStreamOK",
-		strings.NewReader("{}"),
+		strings.NewReader("{}"+strings.Repeat(".", 511)),
 	)
 	if err != nil {
 		log.Println("New request ServerStreamOK:", err)
