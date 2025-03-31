@@ -8,16 +8,29 @@ import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 
 service ExampleService {
-  rpc ServerStreamOK (google.protobuf.Empty) returns (stream ExampleResponse) {
+  rpc UnaryBody (google.protobuf.Empty) returns (ExampleResponse) {
     option (google.api.http) = {
-      post: "/example/v1/ServerStreamOK";
+      post: "/example/v1/UnaryBody";
       body: "*";
     };
   }
 
-  rpc ServerStreamBroken (google.protobuf.Empty) returns (stream ExampleResponse) {
+  rpc UnaryNoBody (google.protobuf.Empty) returns (ExampleResponse) {
     option (google.api.http) = {
-      post: "/example/v1/ServerStreamBroken";
+      post: "/example/v1/UnaryNoBody";
+    };
+  }
+
+  rpc ServerStreamBody (google.protobuf.Empty) returns (stream ExampleResponse) {
+    option (google.api.http) = {
+      post: "/example/v1/ServerStreamBody";
+      body: "*";
+    };
+  }
+
+  rpc ServerStreamNoBody (google.protobuf.Empty) returns (stream ExampleResponse) {
+    option (google.api.http) = {
+      post: "/example/v1/ServerStreamNoBody";
     };
   }
 }

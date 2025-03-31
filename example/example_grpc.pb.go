@@ -20,16 +20,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ExampleService_ServerStreamOK_FullMethodName     = "/example.ExampleService/ServerStreamOK"
-	ExampleService_ServerStreamBroken_FullMethodName = "/example.ExampleService/ServerStreamBroken"
+	ExampleService_UnaryBody_FullMethodName          = "/example.ExampleService/UnaryBody"
+	ExampleService_UnaryNoBody_FullMethodName        = "/example.ExampleService/UnaryNoBody"
+	ExampleService_ServerStreamBody_FullMethodName   = "/example.ExampleService/ServerStreamBody"
+	ExampleService_ServerStreamNoBody_FullMethodName = "/example.ExampleService/ServerStreamNoBody"
 )
 
 // ExampleServiceClient is the client API for ExampleService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ExampleServiceClient interface {
-	ServerStreamOK(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExampleResponse], error)
-	ServerStreamBroken(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExampleResponse], error)
+	UnaryBody(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ExampleResponse, error)
+	UnaryNoBody(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ExampleResponse, error)
+	ServerStreamBody(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExampleResponse], error)
+	ServerStreamNoBody(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExampleResponse], error)
 }
 
 type exampleServiceClient struct {
@@ -40,9 +44,29 @@ func NewExampleServiceClient(cc grpc.ClientConnInterface) ExampleServiceClient {
 	return &exampleServiceClient{cc}
 }
 
-func (c *exampleServiceClient) ServerStreamOK(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExampleResponse], error) {
+func (c *exampleServiceClient) UnaryBody(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ExampleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ExampleService_ServiceDesc.Streams[0], ExampleService_ServerStreamOK_FullMethodName, cOpts...)
+	out := new(ExampleResponse)
+	err := c.cc.Invoke(ctx, ExampleService_UnaryBody_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *exampleServiceClient) UnaryNoBody(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ExampleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExampleResponse)
+	err := c.cc.Invoke(ctx, ExampleService_UnaryNoBody_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *exampleServiceClient) ServerStreamBody(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExampleResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &ExampleService_ServiceDesc.Streams[0], ExampleService_ServerStreamBody_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,11 +81,11 @@ func (c *exampleServiceClient) ServerStreamOK(ctx context.Context, in *emptypb.E
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ExampleService_ServerStreamOKClient = grpc.ServerStreamingClient[ExampleResponse]
+type ExampleService_ServerStreamBodyClient = grpc.ServerStreamingClient[ExampleResponse]
 
-func (c *exampleServiceClient) ServerStreamBroken(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExampleResponse], error) {
+func (c *exampleServiceClient) ServerStreamNoBody(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExampleResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ExampleService_ServiceDesc.Streams[1], ExampleService_ServerStreamBroken_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &ExampleService_ServiceDesc.Streams[1], ExampleService_ServerStreamNoBody_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,14 +100,16 @@ func (c *exampleServiceClient) ServerStreamBroken(ctx context.Context, in *empty
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ExampleService_ServerStreamBrokenClient = grpc.ServerStreamingClient[ExampleResponse]
+type ExampleService_ServerStreamNoBodyClient = grpc.ServerStreamingClient[ExampleResponse]
 
 // ExampleServiceServer is the server API for ExampleService service.
 // All implementations must embed UnimplementedExampleServiceServer
 // for forward compatibility.
 type ExampleServiceServer interface {
-	ServerStreamOK(*emptypb.Empty, grpc.ServerStreamingServer[ExampleResponse]) error
-	ServerStreamBroken(*emptypb.Empty, grpc.ServerStreamingServer[ExampleResponse]) error
+	UnaryBody(context.Context, *emptypb.Empty) (*ExampleResponse, error)
+	UnaryNoBody(context.Context, *emptypb.Empty) (*ExampleResponse, error)
+	ServerStreamBody(*emptypb.Empty, grpc.ServerStreamingServer[ExampleResponse]) error
+	ServerStreamNoBody(*emptypb.Empty, grpc.ServerStreamingServer[ExampleResponse]) error
 	mustEmbedUnimplementedExampleServiceServer()
 }
 
@@ -94,11 +120,17 @@ type ExampleServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedExampleServiceServer struct{}
 
-func (UnimplementedExampleServiceServer) ServerStreamOK(*emptypb.Empty, grpc.ServerStreamingServer[ExampleResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method ServerStreamOK not implemented")
+func (UnimplementedExampleServiceServer) UnaryBody(context.Context, *emptypb.Empty) (*ExampleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnaryBody not implemented")
 }
-func (UnimplementedExampleServiceServer) ServerStreamBroken(*emptypb.Empty, grpc.ServerStreamingServer[ExampleResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method ServerStreamBroken not implemented")
+func (UnimplementedExampleServiceServer) UnaryNoBody(context.Context, *emptypb.Empty) (*ExampleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnaryNoBody not implemented")
+}
+func (UnimplementedExampleServiceServer) ServerStreamBody(*emptypb.Empty, grpc.ServerStreamingServer[ExampleResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method ServerStreamBody not implemented")
+}
+func (UnimplementedExampleServiceServer) ServerStreamNoBody(*emptypb.Empty, grpc.ServerStreamingServer[ExampleResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method ServerStreamNoBody not implemented")
 }
 func (UnimplementedExampleServiceServer) mustEmbedUnimplementedExampleServiceServer() {}
 func (UnimplementedExampleServiceServer) testEmbeddedByValue()                        {}
@@ -121,27 +153,63 @@ func RegisterExampleServiceServer(s grpc.ServiceRegistrar, srv ExampleServiceSer
 	s.RegisterService(&ExampleService_ServiceDesc, srv)
 }
 
-func _ExampleService_ServerStreamOK_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _ExampleService_UnaryBody_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExampleServiceServer).UnaryBody(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExampleService_UnaryBody_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExampleServiceServer).UnaryBody(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExampleService_UnaryNoBody_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExampleServiceServer).UnaryNoBody(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExampleService_UnaryNoBody_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExampleServiceServer).UnaryNoBody(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExampleService_ServerStreamBody_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(emptypb.Empty)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(ExampleServiceServer).ServerStreamOK(m, &grpc.GenericServerStream[emptypb.Empty, ExampleResponse]{ServerStream: stream})
+	return srv.(ExampleServiceServer).ServerStreamBody(m, &grpc.GenericServerStream[emptypb.Empty, ExampleResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ExampleService_ServerStreamOKServer = grpc.ServerStreamingServer[ExampleResponse]
+type ExampleService_ServerStreamBodyServer = grpc.ServerStreamingServer[ExampleResponse]
 
-func _ExampleService_ServerStreamBroken_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _ExampleService_ServerStreamNoBody_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(emptypb.Empty)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(ExampleServiceServer).ServerStreamBroken(m, &grpc.GenericServerStream[emptypb.Empty, ExampleResponse]{ServerStream: stream})
+	return srv.(ExampleServiceServer).ServerStreamNoBody(m, &grpc.GenericServerStream[emptypb.Empty, ExampleResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ExampleService_ServerStreamBrokenServer = grpc.ServerStreamingServer[ExampleResponse]
+type ExampleService_ServerStreamNoBodyServer = grpc.ServerStreamingServer[ExampleResponse]
 
 // ExampleService_ServiceDesc is the grpc.ServiceDesc for ExampleService service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -149,16 +217,25 @@ type ExampleService_ServerStreamBrokenServer = grpc.ServerStreamingServer[Exampl
 var ExampleService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "example.ExampleService",
 	HandlerType: (*ExampleServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "UnaryBody",
+			Handler:    _ExampleService_UnaryBody_Handler,
+		},
+		{
+			MethodName: "UnaryNoBody",
+			Handler:    _ExampleService_UnaryNoBody_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "ServerStreamOK",
-			Handler:       _ExampleService_ServerStreamOK_Handler,
+			StreamName:    "ServerStreamBody",
+			Handler:       _ExampleService_ServerStreamBody_Handler,
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "ServerStreamBroken",
-			Handler:       _ExampleService_ServerStreamBroken_Handler,
+			StreamName:    "ServerStreamNoBody",
+			Handler:       _ExampleService_ServerStreamNoBody_Handler,
 			ServerStreams: true,
 		},
 	},

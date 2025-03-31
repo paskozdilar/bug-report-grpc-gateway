@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -20,23 +22,43 @@ type implExampleServer struct {
 	example.UnsafeExampleServiceServer
 }
 
-func (*implExampleServer) ServerStreamOK(
+func (*implExampleServer) UnaryBody(
+	ctx context.Context,
+	req *emptypb.Empty,
+) (*example.ExampleResponse, error) {
+	log.Println("UnaryBody open")
+	<-ctx.Done()
+	log.Println("UnaryBody close")
+	return &example.ExampleResponse{}, nil
+}
+
+func (*implExampleServer) UnaryNoBody(
+	ctx context.Context,
+	req *emptypb.Empty,
+) (*example.ExampleResponse, error) {
+	log.Println("UnaryNoBody open")
+	<-ctx.Done()
+	log.Println("UnaryNoBody close")
+	return &example.ExampleResponse{}, nil
+}
+
+func (*implExampleServer) ServerStreamBody(
 	req *emptypb.Empty,
 	stream grpc.ServerStreamingServer[example.ExampleResponse],
 ) error {
-	log.Println("ServerStreamOK open")
+	log.Println("ServerStreamBody open")
 	<-stream.Context().Done()
-	log.Println("ServerStreamOK close")
+	log.Println("ServerStreamBody close")
 	return nil
 }
 
-func (*implExampleServer) ServerStreamBroken(
+func (*implExampleServer) ServerStreamNoBody(
 	req *emptypb.Empty,
 	stream grpc.ServerStreamingServer[example.ExampleResponse],
 ) error {
-	log.Println("ServerStreamBroken open")
+	log.Println("ServerStreamNoBody open")
 	<-stream.Context().Done()
-	log.Println("ServerStreamBroken close")
+	log.Println("ServerStreamNoBody close")
 	return nil
 }
 
@@ -72,29 +94,36 @@ func client() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	time.Sleep(time.Second)
-
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodPost,
-		"http://localhost:8081/example/v1/ServerStreamOK",
-		strings.NewReader("{}"+strings.Repeat(".", 511)),
-	)
-	if err != nil {
-		log.Println("New request ServerStreamOK:", err)
+	for {
+		conn, err := net.Dial("tcp", "localhost:8081")
+		if err == nil {
+			conn.Close()
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
 	}
-	go (&http.Client{}).Do(req)
 
-	req, err = http.NewRequestWithContext(
-		ctx,
-		http.MethodPost,
-		"http://localhost:8081/example/v1/ServerStreamBroken",
-		strings.NewReader("{}"),
-	)
-	if err != nil {
-		log.Println("Request ServerStreamBroken:", err)
+	fireRequest := func(name string, body io.Reader) error {
+		req, err := http.NewRequestWithContext(
+			ctx,
+			http.MethodPost,
+			fmt.Sprintf(
+				"http://localhost:8081/example/v1/%s",
+				name,
+			),
+			body,
+		)
+		if err != nil {
+			log.Printf("New request %s: %v", name, err)
+		}
+		go http.DefaultClient.Do(req)
+		return nil
 	}
-	go (&http.Client{}).Do(req)
+
+	fireRequest("UnaryBody", strings.NewReader("{}"+strings.Repeat(".", 511)))
+	fireRequest("UnaryNoBody", strings.NewReader("."))
+	fireRequest("ServerStreamBody", strings.NewReader("{}"+strings.Repeat(".", 511)))
+	fireRequest("ServerStreamNoBody", strings.NewReader("."))
 
 	time.Sleep(time.Second)
 }
