@@ -116,16 +116,40 @@ func client() {
 		if err != nil {
 			log.Printf("New request %s: %v", name, err)
 		}
-		go http.DefaultClient.Do(req)
+		go func() {
+			log.Printf("requesting: %s", name)
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				log.Printf("request failed: %s: %v", name, err)
+				return
+			}
+			if resp.StatusCode != http.StatusOK {
+				log.Printf("request failed: %s: %v", name, resp.Status)
+				return
+			}
+			log.Printf("request success: %s", name)
+		}()
 		return nil
 	}
 
+	log.Println("> Running invalid requests:")
 	fireRequest("UnaryBody", strings.NewReader("{}"+strings.Repeat(".", 511)))
 	fireRequest("UnaryNoBody", strings.NewReader("."))
 	fireRequest("ServerStreamBody", strings.NewReader("{}"+strings.Repeat(".", 511)))
 	fireRequest("ServerStreamNoBody", strings.NewReader("."))
-
 	time.Sleep(time.Second)
+	cancel()
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	log.Println("> Running valid requests:")
+	fireRequest("UnaryBody", strings.NewReader("{}"))
+	fireRequest("UnaryNoBody", nil)
+	fireRequest("ServerStreamBody", strings.NewReader("{}"))
+	fireRequest("ServerStreamNoBody", nil)
+	time.Sleep(time.Second)
+	cancel()
 }
 
 func main() {

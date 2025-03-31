@@ -25,6 +25,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+const FIX = true
+
 // Suppress "imported and not used" errors
 var (
 	_ codes.Code
@@ -41,9 +43,19 @@ func request_ExampleService_UnaryBody_0(ctx context.Context, marshaler runtime.M
 		protoReq emptypb.Empty
 		metadata runtime.ServerMetadata
 	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
+    if FIX { 
+        d := marshaler.NewDecoder(req.Body)
+        if err := d.Decode(&protoReq); err != nil {
+            return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+        }
+        if err := d.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+            return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+        }
+    } else {
+        if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+            return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+        }
+    }
 	msg, err := client.UnaryBody(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
@@ -65,6 +77,15 @@ func request_ExampleService_UnaryNoBody_0(ctx context.Context, marshaler runtime
 		protoReq emptypb.Empty
 		metadata runtime.ServerMetadata
 	)
+    if FIX {
+        n, err := io.Copy(io.Discard, req.Body)
+        if err != nil {
+            return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+        }
+        if n != 0 {
+            return nil, metadata, status.Errorf(codes.InvalidArgument, "expected empty body")
+        }
+    }
 	msg, err := client.UnaryNoBody(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
@@ -83,9 +104,19 @@ func request_ExampleService_ServerStreamBody_0(ctx context.Context, marshaler ru
 		protoReq emptypb.Empty
 		metadata runtime.ServerMetadata
 	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
+    if FIX { 
+        d := marshaler.NewDecoder(req.Body)
+        if err := d.Decode(&protoReq); err != nil {
+            return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+        }
+        if err := d.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+            return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+        }
+    } else {
+        if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+            return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+        }
+    }	
 	stream, err := client.ServerStreamBody(ctx, &protoReq)
 	if err != nil {
 		return nil, metadata, err
@@ -103,6 +134,15 @@ func request_ExampleService_ServerStreamNoBody_0(ctx context.Context, marshaler 
 		protoReq emptypb.Empty
 		metadata runtime.ServerMetadata
 	)
+    if FIX {
+        n, err := io.Copy(io.Discard, req.Body)
+        if err != nil {
+            return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+        }
+        if n != 0 {
+            return nil, metadata, status.Errorf(codes.InvalidArgument, "expected empty body")
+        }
+    } 
 	stream, err := client.ServerStreamNoBody(ctx, &protoReq)
 	if err != nil {
 		return nil, metadata, err
