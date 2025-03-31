@@ -26,9 +26,9 @@ func (*implExampleServer) UnaryBody(
 	ctx context.Context,
 	req *emptypb.Empty,
 ) (*example.ExampleResponse, error) {
-	log.Println("UnaryBody open")
+	fmt.Println("UnaryBody open")
 	<-ctx.Done()
-	log.Println("UnaryBody close")
+	fmt.Println("UnaryBody close")
 	return &example.ExampleResponse{}, nil
 }
 
@@ -36,9 +36,9 @@ func (*implExampleServer) UnaryNoBody(
 	ctx context.Context,
 	req *emptypb.Empty,
 ) (*example.ExampleResponse, error) {
-	log.Println("UnaryNoBody open")
+	fmt.Println("UnaryNoBody open")
 	<-ctx.Done()
-	log.Println("UnaryNoBody close")
+	fmt.Println("UnaryNoBody close")
 	return &example.ExampleResponse{}, nil
 }
 
@@ -46,9 +46,9 @@ func (*implExampleServer) ServerStreamBody(
 	req *emptypb.Empty,
 	stream grpc.ServerStreamingServer[example.ExampleResponse],
 ) error {
-	log.Println("ServerStreamBody open")
+	fmt.Println("ServerStreamBody open")
 	<-stream.Context().Done()
-	log.Println("ServerStreamBody close")
+	fmt.Println("ServerStreamBody close")
 	return nil
 }
 
@@ -56,9 +56,9 @@ func (*implExampleServer) ServerStreamNoBody(
 	req *emptypb.Empty,
 	stream grpc.ServerStreamingServer[example.ExampleResponse],
 ) error {
-	log.Println("ServerStreamNoBody open")
+	fmt.Println("ServerStreamNoBody open")
 	<-stream.Context().Done()
-	log.Println("ServerStreamNoBody close")
+	fmt.Println("ServerStreamNoBody close")
 	return nil
 }
 
@@ -114,25 +114,25 @@ func client() {
 			body,
 		)
 		if err != nil {
-			log.Printf("New request %s: %v", name, err)
+			fmt.Printf("New request %s: %v\n", name, err)
 		}
 		go func() {
-			log.Printf("requesting: %s", name)
+			fmt.Printf("requesting: %s\n", name)
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
-				log.Printf("request failed: %s: %v", name, err)
+				fmt.Printf("request failed: %s: %v\n", name, err)
 				return
 			}
 			if resp.StatusCode != http.StatusOK {
-				log.Printf("request failed: %s: %v", name, resp.Status)
+				fmt.Printf("request failed: %s: %v\n", name, resp.Status)
 				return
 			}
-			log.Printf("request success: %s", name)
+			fmt.Printf("request success: %s\n", name)
 		}()
 		return nil
 	}
 
-	log.Println("> Running invalid requests:")
+	fmt.Println("> Running invalid requests:")
 	fireRequest("UnaryBody", strings.NewReader("{}"+strings.Repeat(".", 511)))
 	fireRequest("UnaryNoBody", strings.NewReader("."))
 	fireRequest("ServerStreamBody", strings.NewReader("{}"+strings.Repeat(".", 511)))
@@ -143,7 +143,7 @@ func client() {
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
 
-	log.Println("> Running valid requests:")
+	fmt.Println("> Running valid requests:")
 	fireRequest("UnaryBody", strings.NewReader("{}"))
 	fireRequest("UnaryNoBody", nil)
 	fireRequest("ServerStreamBody", strings.NewReader("{}"))
