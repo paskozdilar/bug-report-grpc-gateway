@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package services.v1;
+option go_package = "github.com/paskozdilar/bug-report-grpc-gateway/src/proto/services/v1";
+
+// Annotations:
+import "google/api/annotations.proto";
+
+// Builtin types:
+import "google/protobuf/empty.proto";
+
+// Internal types:
+import "common/v1/app.proto";
+
+service API {
+  rpc GetApps (google.protobuf.Empty) returns (common.v1.AppsBasic) {
+    option (google.api.http) = {
+      get: "/api/v1/app";
+      response_body: "apps";
+    };
+  }
+
+  rpc GetAppDetails (common.v1.AppKey) returns (common.v1.App) {
+    option (google.api.http) = {
+      get: "/api/v1/app/{app_key}";
+    };
+  }
+}

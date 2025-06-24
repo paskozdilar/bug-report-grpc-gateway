@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package common.v1;
+option go_package = "github.com/paskozdilar/bug-report-grpc-gateway/src/proto/common/v1";
+
+
+message AppKey {
+  string app_key = 1;
+}
+
+message AppBasic {
+  string app_key = 1;
+  string app_name = 2;
+  bool enabled = 3;
+}
+
+message AppsBasic {
+  repeated AppBasic apps = 1;
+}
+
+message App {
+  string app_key = 1;
+  string app_name = 2;
+  bool enabled = 3;
+  string version = 4;
+  string vendor = 5;
+  string description = 6;
+}
