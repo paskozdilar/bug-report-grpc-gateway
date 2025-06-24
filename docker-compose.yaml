@@ -1,0 +1,5 @@
+services:
+  bug-report:
+    build:
+      context: .
+      dockerfile: Dockerfile

@@ -11,20 +11,20 @@ help:
 
 latest:
 	@echo "-- Installing grpc-gateway version 2.27.0 and building..."
+	go mod download
 	go get -tool github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.27.0
-	go mod tidy
 	rm -rf src/proto
-	buf dep update
-	buf generate
+	go tool buf dep update
+	go tool buf generate
 	go build ./...
 
 previous:
 	@echo "-- Installing grpc-gateway version 2.26.3 and building..."
+	go mod download
 	go get -tool github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.26.3
-	go mod tidy
 	rm -rf src/proto
-	buf dep update
-	buf generate
+	go tool buf dep update
+	go tool buf generate
 	go build ./...
 
 both: previous latest
